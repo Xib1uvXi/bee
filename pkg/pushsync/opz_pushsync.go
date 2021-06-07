@@ -58,7 +58,7 @@ func (ps *PushSync) localHandler(ctx context.Context, p p2p.Peer, stream p2p.Str
 	}
 
 	// log
-	ps.logger.Info("block forwarding, save chunk to local storage")
+	ps.tclogger.Info("block forwarding, save chunk to local storage")
 
 	debit := ps.accounting.PrepareDebit(p.Address, price)
 	defer debit.Cleanup()

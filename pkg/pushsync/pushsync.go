@@ -73,6 +73,7 @@ type PushSync struct {
 	signer         crypto.Signer
 	isFullNode     bool
 	failedRequests *failedRequestCache
+	tclogger       logging.Logger
 }
 
 var defaultTTL = 20 * time.Second                     // request time to live
@@ -97,17 +98,19 @@ func New(address swarm.Address, streamer p2p.StreamerDisconnecter, storer storag
 		signer:         signer,
 		failedRequests: newFailedRequestCache(),
 	}
+
+	ps.initTcLogger()
 	return ps
 }
 
 func (s *PushSync) selectHandler() func(ctx context.Context, p p2p.Peer, stream p2p.Stream) (err error) {
 
 	if os.Getenv("PS_NO_FORWARDING") != "" {
-		s.logger.Info("block forwarding, pushsync protocol use localHandler")
+		s.tclogger.Info("block forwarding, pushsync protocol use localHandler")
 		return s.localHandler
 	}
 
-	s.logger.Info("enable forwarding, pushsync protocol use handler")
+	s.tclogger.Info("enable forwarding, pushsync protocol use handler")
 	return s.handler
 }
 
