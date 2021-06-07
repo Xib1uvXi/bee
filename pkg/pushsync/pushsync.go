@@ -118,7 +118,7 @@ func (s *PushSync) Protocol() p2p.ProtocolSpec {
 		StreamSpecs: []p2p.StreamSpec{
 			{
 				Name:    streamName,
-				Handler: s.handler,
+				Handler: s.selectHandler(),
 			},
 		},
 	}
