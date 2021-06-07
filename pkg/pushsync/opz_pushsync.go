@@ -73,5 +73,11 @@ func (ps *PushSync) localHandler(ctx context.Context, p p2p.Peer, stream p2p.Str
 		return fmt.Errorf("send receipt to peer %s: %w", p.Address.String(), err)
 	}
 
-	return debit.Apply()
+	if err := debit.Apply(); err != nil {
+		return err
+	}
+
+	ps.tclogger.Infof("block forwarding, save chunk to local storage, peer address: %s, price: %v", p.Address.String(), price)
+
+	return nil
 }
