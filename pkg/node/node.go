@@ -346,7 +346,10 @@ func NewBee(addr string, swarmAddress swarm.Address, publicKey ecdsa.PublicKey, 
 	if err != nil {
 		return nil, fmt.Errorf("batchstore: %w", err)
 	}
-	validStamp := postage.ValidStamp(batchStore)
+
+	// no valid stamp
+	// validStamp := postage.ValidStamp(batchStore)
+	validStamp := postage.TrustValidStamp(batchStore)
 	post, err := postage.NewService(stateStore, chainID)
 	if err != nil {
 		return nil, fmt.Errorf("postage service load: %w", err)

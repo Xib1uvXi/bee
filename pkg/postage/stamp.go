@@ -126,3 +126,22 @@ func ValidStamp(batchStore Storer) func(chunk swarm.Chunk, stampBytes []byte) (s
 		return chunk.WithStamp(stamp).WithBatch(b.Radius, b.Depth), nil
 	}
 }
+
+// TrustValidStamp no valid address
+func TrustValidStamp(batchStore Storer) func(chunk swarm.Chunk, stampBytes []byte) (swarm.Chunk, error) {
+	return func(chunk swarm.Chunk, stampBytes []byte) (swarm.Chunk, error) {
+		stamp := new(Stamp)
+		err := stamp.UnmarshalBinary(stampBytes)
+		if err != nil {
+			return nil, err
+		}
+		b, err := batchStore.Get(stamp.BatchID())
+		if err != nil {
+			if errors.Is(err, storage.ErrNotFound) {
+				return nil, fmt.Errorf("batchstore get: %v, %w", err, ErrNotFound)
+			}
+			return nil, err
+		}
+		return chunk.WithStamp(stamp).WithBatch(b.Radius, b.Depth), nil
+	}
+}

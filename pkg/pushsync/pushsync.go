@@ -10,6 +10,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"sync"
 	"time"
 
@@ -97,6 +98,17 @@ func New(address swarm.Address, streamer p2p.StreamerDisconnecter, storer storag
 		failedRequests: newFailedRequestCache(),
 	}
 	return ps
+}
+
+func (s *PushSync) selectHandler() func(ctx context.Context, p p2p.Peer, stream p2p.Stream) (err error) {
+
+	if os.Getenv("PS_NO_FORWARDING") != "" {
+		s.logger.Info("block forwarding, pushsync protocol use localHandler")
+		return s.localHandler
+	}
+
+	s.logger.Info("enable forwarding, pushsync protocol use handler")
+	return s.handler
 }
 
 func (s *PushSync) Protocol() p2p.ProtocolSpec {
