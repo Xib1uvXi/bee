@@ -478,6 +478,8 @@ func NewBee(addr string, swarmAddress swarm.Address, publicKey ecdsa.PublicKey, 
 
 	minThreshold := pricer.MostExpensive()
 
+	logger.Infof("min threshold: %s", minThreshold.String())
+
 	pricing := pricing.New(p2ps, logger, paymentThreshold, minThreshold)
 
 	if err = p2ps.AddProtocol(pricing.Protocol()); err != nil {
