@@ -34,7 +34,9 @@ const (
 	StreamName = "handshake"
 	// MaxWelcomeMessageLength is maximum number of characters allowed in the welcome message.
 	MaxWelcomeMessageLength = 140
-	handshakeTimeout        = 15 * time.Second
+	//handshakeTimeout        = 15 * time.Second
+	// triple the time
+	handshakeTimeout = 45 * time.Second
 )
 
 var (
