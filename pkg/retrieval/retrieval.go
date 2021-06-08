@@ -57,10 +57,12 @@ type Service struct {
 	metrics       metrics
 	pricer        pricer.Interface
 	tracer        *tracing.Tracer
+	tclogger      logging.Logger
 }
 
 func New(addr swarm.Address, storer storage.Storer, streamer p2p.Streamer, chunkPeerer topology.EachPeerer, logger logging.Logger, accounting accounting.Interface, pricer pricer.Interface, tracer *tracing.Tracer) *Service {
-	return &Service{
+
+	s := &Service{
 		addr:          addr,
 		streamer:      streamer,
 		peerSuggester: chunkPeerer,
@@ -71,6 +73,10 @@ func New(addr swarm.Address, storer storage.Storer, streamer p2p.Streamer, chunk
 		metrics:       newMetrics(),
 		tracer:        tracer,
 	}
+
+	s.initTcLogger()
+
+	return s
 }
 
 func (s *Service) Protocol() p2p.ProtocolSpec {
@@ -265,6 +271,9 @@ func (s *Service) retrieveChunk(ctx context.Context, addr swarm.Address, sp *ski
 	if err != nil {
 		return nil, peer, err
 	}
+
+	s.tclogger.Infof("forward the retrieval request, peer address: %s, chunk address: %s, debit price: %", peer.String(), chunk.Address().String(), chunkPrice)
+
 	s.metrics.ChunkPrice.Observe(float64(chunkPrice))
 
 	return chunk, peer, err
@@ -349,6 +358,9 @@ func (s *Service) handler(ctx context.Context, p p2p.Peer, stream p2p.Stream) (e
 	if err != nil {
 		if errors.Is(err, storage.ErrNotFound) {
 			// forward the request
+			// todo: 这里需要改动:
+			// 1.  先拿到对方要给我们的钱
+			// 2.  在执行 forward the request 时 判断钱是否是正收益，如果是就执行，不是则报错
 			chunk, err = s.RetrieveChunk(ctx, addr)
 			if err != nil {
 				return fmt.Errorf("retrieve chunk: %w", err)
@@ -377,5 +389,11 @@ func (s *Service) handler(ctx context.Context, p p2p.Peer, stream p2p.Stream) (e
 	s.logger.Tracef("retrieval protocol debiting peer %s", p.Address.String())
 
 	// debit price from p's balance
-	return debit.Apply()
+	if err := debit.Apply(); err != nil {
+		return err
+	}
+
+	s.tclogger.Infof("handle retrieval chunk, peer address: %s, chunk address: %s, debit price: %", p.Address.String(), chunk.Address().String(), chunkPrice)
+
+	return nil
 }
