@@ -272,7 +272,7 @@ func (s *Service) retrieveChunk(ctx context.Context, addr swarm.Address, sp *ski
 		return nil, peer, err
 	}
 
-	s.tclogger.Infof("forward the retrieval request, peer address: %s, chunk address: %s, debit price: %", peer.String(), chunk.Address().String(), chunkPrice)
+	s.tclogger.Infof("forward the retrieval request, peer address: %s, chunk address: %s, debit price: v%", peer.String(), chunk.Address().String(), chunkPrice)
 
 	s.metrics.ChunkPrice.Observe(float64(chunkPrice))
 
@@ -393,7 +393,7 @@ func (s *Service) handler(ctx context.Context, p p2p.Peer, stream p2p.Stream) (e
 		return err
 	}
 
-	s.tclogger.Infof("handle retrieval chunk, peer address: %s, chunk address: %s, debit price: %", p.Address.String(), chunk.Address().String(), chunkPrice)
+	s.tclogger.Infof("handle retrieval chunk, peer address: %s, chunk address: %s, debit price: v%", p.Address.String(), chunk.Address().String(), chunkPrice)
 
 	return nil
 }
