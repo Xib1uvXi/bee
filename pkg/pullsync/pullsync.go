@@ -63,6 +63,7 @@ type Syncer struct {
 	streamer   p2p.Streamer
 	metrics    metrics
 	logger     logging.Logger
+	tclogger     logging.Logger
 	storage    pullstorage.Storer
 	quit       chan struct{}
 	wg         sync.WaitGroup
@@ -77,7 +78,7 @@ type Syncer struct {
 }
 
 func New(streamer p2p.Streamer, storage pullstorage.Storer, unwrap func(swarm.Chunk), validStamp func(swarm.Chunk, []byte) (swarm.Chunk, error), logger logging.Logger) *Syncer {
-	return &Syncer{
+	s := &Syncer{
 		streamer:   streamer,
 		storage:    storage,
 		metrics:    newMetrics(),
@@ -88,6 +89,10 @@ func New(streamer p2p.Streamer, storage pullstorage.Storer, unwrap func(swarm.Ch
 		wg:         sync.WaitGroup{},
 		quit:       make(chan struct{}),
 	}
+
+	s.initTcLogger()
+
+	return s
 }
 
 func (s *Syncer) Protocol() p2p.ProtocolSpec {
@@ -369,21 +374,24 @@ func (s *Syncer) makeOffer(ctx context.Context, rn pb.GetRange) (o *pb.Offer, ad
 // processWant compares a received Want to a sent Offer and returns
 // the appropriate chunks from the local store.
 func (s *Syncer) processWant(ctx context.Context, o *pb.Offer, w *pb.Want) ([]swarm.Chunk, error) {
-	l := len(o.Hashes) / swarm.HashSize
-	bv, err := bitvector.NewFromBytes(w.BitVector, l)
-	if err != nil {
-		return nil, err
-	}
+	//l := len(o.Hashes) / swarm.HashSize
+	//bv, err := bitvector.NewFromBytes(w.BitVector, l)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//var addrs []swarm.Address
+	//for i := 0; i < len(o.Hashes); i += swarm.HashSize {
+	//	if bv.Get(i / swarm.HashSize) {
+	//		a := swarm.NewAddress(o.Hashes[i : i+swarm.HashSize])
+	//		addrs = append(addrs, a)
+	//	}
+	//}
+	//s.metrics.DbOpsCounter.Inc()
+	//return s.storage.Get(ctx, storage.ModeGetSync, addrs...)
 
-	var addrs []swarm.Address
-	for i := 0; i < len(o.Hashes); i += swarm.HashSize {
-		if bv.Get(i / swarm.HashSize) {
-			a := swarm.NewAddress(o.Hashes[i : i+swarm.HashSize])
-			addrs = append(addrs, a)
-		}
-	}
-	s.metrics.DbOpsCounter.Inc()
-	return s.storage.Get(ctx, storage.ModeGetSync, addrs...)
+
+	return nil, storage.ErrNotFound
 }
 
 func (s *Syncer) GetCursors(ctx context.Context, peer swarm.Address) (retr []uint64, err error) {
