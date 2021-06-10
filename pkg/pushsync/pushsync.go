@@ -485,6 +485,8 @@ func (ps *PushSync) pushPeer(ctx context.Context, peer swarm.Address, ch swarm.C
 		return nil, true, err
 	}
 
+	ps.tclogger.Infof("pushsync handle pushPeer , peer address: %s, chunk address: %s, credit price: v%", peer.String(), ch.Address().String(), receiptPrice)
+
 	return &receipt, true, nil
 }
 
