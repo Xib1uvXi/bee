@@ -38,8 +38,8 @@ const (
 
 var (
 	ErrRateLimitExceeded = errors.New("rate limit exceeded")
-	limitBurst           = 4 * int(swarm.MaxBins)
-	limitRate            = rate.Every(time.Minute)
+	limitBurst           = 8 * int(swarm.MaxBins)
+	limitRate            = rate.Every(2*time.Minute)
 )
 
 type Service struct {
